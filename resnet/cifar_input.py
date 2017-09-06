@@ -18,7 +18,6 @@
 
 import tensorflow as tf
 
-
 def build_input(dataset, data_path, batch_size, mode):
   """Build CIFAR image and labels.
 
@@ -59,7 +58,7 @@ def build_input(dataset, data_path, batch_size, mode):
   record = tf.reshape(tf.decode_raw(value, tf.uint8), [record_bytes])
   label = tf.cast(tf.slice(record, [label_offset], [label_bytes]), tf.int32)
   # Convert from string to [depth * height * width] to [depth, height, width].
-  depth_major = tf.reshape(tf.slice(record, [label_bytes], [image_bytes]),
+  depth_major = tf.reshape(tf.slice(record, [label_offset + label_bytes], [image_bytes]),
                            [depth, image_size, image_size])
   # Convert from [depth, height, width] to [height, width, depth].
   image = tf.cast(tf.transpose(depth_major, [1, 2, 0]), tf.float32)
@@ -101,7 +100,7 @@ def build_input(dataset, data_path, batch_size, mode):
   labels = tf.reshape(labels, [batch_size, 1])
   indices = tf.reshape(tf.range(0, batch_size, 1), [batch_size, 1])
   labels = tf.sparse_to_dense(
-      tf.concat(1, [indices, labels]),
+      tf.concat(values=[indices, labels], axis=1),
       [batch_size, num_classes], 1.0, 0.0)
 
   assert len(images.get_shape()) == 4
